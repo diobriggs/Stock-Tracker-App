@@ -13,7 +13,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(StockTrackerApp());
+  runApp(const StockTrackerApp());
 }
 
 class StockTrackerApp extends StatelessWidget {
@@ -34,10 +34,10 @@ class StockTrackerApp extends StatelessWidget {
       ),
       initialRoute: FirebaseAuth.instance.currentUser == null ? '/login' : '/main',
       routes: {
-        '/login': (context) => LoginScreen(),
-        '/register': (context) => RegisterScreen(),
-        '/main': (context) => MainScreen(),
-        '/stockDetails': (context) => StockDetailsScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/main': (context) => const MainScreen(),
+        '/stockDetails': (context) => const StockDetailsScreen(),
       },
     );
   }
@@ -54,9 +54,9 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   static final List<Widget> _screens = <Widget>[
-    HomeScreen(),
-    WatchlistScreen(),
-    NewsfeedScreen(),
+    const HomeScreen(),
+    const WatchlistScreen(),
+    const NewsfeedScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -206,12 +206,94 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  Future<List<dynamic>> fetchTrendingStocks() async {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  TextEditingController searchController = TextEditingController();
+  List<dynamic> allStocks = [];
+  List<dynamic> filteredStocks = [];
+
+  // List of popular tech company symbols (Apple, Google, Microsoft, Nvidia, Meta, etc.)
+  List<String> techStockSymbols = [
+    'AAPL',  // Apple
+    'GOOGL', // Google
+    'MSFT',  // Microsoft
+    'NVDA',  // Nvidia
+    'META',  // Meta (formerly Facebook)
+    'AMZN',  // Amazon
+    'TSLA',  // Tesla
+    'GOOG',  // Google (Class C shares)
+    'INTC',  // Intel
+    'AMD',   // AMD
+    'CSCO',  // Cisco
+    'ORCL',  // Oracle
+    'ADBE',  // Adobe
+    'SHOP',  // Shopify
+    'ZM',    // Zoom Video Communications
+    'NFLX',  // Netflix
+    'PYPL',  // PayPal
+    'INTU',  // Intuit
+    'DOCU',  // DocuSign
+    'SQ',    // Block (formerly Square)
+    'SNAP',  // Snap Inc.
+    'SPOT',  // Spotify
+    'TWTR',  // Twitter (if available)
+    'BIDU',  // Baidu (Chinese tech)
+    'SHOP',  // Shopify
+    'UBER',  // Uber Technologies
+    'LYFT',  // Lyft
+    'RBLX',  // Roblox
+    'PINS',  // Pinterest
+    'WORK',  // Slack Technologies
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTrendingStocks();
+  }
+
+  Future<void> fetchTrendingStocks() async {
     final response = await http.get(Uri.parse('https://finnhub.io/api/v1/stock/symbol?exchange=US&token=ctbiutpr01qvslqulaj0ctbiutpr01qvslqulajg'));
-    return json.decode(response.body);
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+
+      // Filter to show only tech stocks based on the list of known tech company symbols
+      List<dynamic> techStocks = data.where((stock) => techStockSymbols.contains(stock['symbol'])).toList();
+      
+      // Update the state with tech stocks (for display) and all stocks (for search functionality)
+      setState(() {
+        allStocks = data; // Fetch all available stocks
+        filteredStocks = techStocks; // Show only tech stocks initially
+      });
+    } else {
+      print("Error fetching data: ${response.statusCode}");
+    }
+  }
+
+  void filterStocks(String query) {
+    setState(() {
+      // Filter both the tech stocks and the all stocks by matching the search query
+      filteredStocks = allStocks
+          .where((stock) =>
+              stock['description'] != null &&
+              stock['description'].toLowerCase().contains(query.toLowerCase()) ||
+              stock['symbol'] != null &&
+              stock['symbol'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
+
+      // Optionally, if you want to return to the tech stock list when the search query is empty, you can add this check:
+      if (query.isEmpty) {
+        filteredStocks = allStocks.where((stock) => techStockSymbols.contains(stock['symbol'])).toList();
+      }
+    });
   }
 
   @override
@@ -226,45 +308,60 @@ class HomeScreen extends StatelessWidget {
               await FirebaseAuth.instance.signOut();
               Navigator.pushReplacementNamed(context, '/login');
             },
-          )
+          ),
         ],
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: fetchTrendingStocks(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return const Center(child: Text("Error loading stocks"));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  child: ListTile(
-                    title: Text(
-                      snapshot.data![index]['description'],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(snapshot.data![index]['symbol']),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () => Navigator.pushNamed(
-                      context, 
-                      '/stockDetails', 
-                      arguments: snapshot.data![index]
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              onChanged: filterStocks,
+              decoration: InputDecoration(
+                hintText: "Search for any stock...",
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: allStocks.isEmpty
+                ? const Center(child: CircularProgressIndicator()) // Loading state
+                : filteredStocks.isEmpty
+                    ? const Center(child: Text("No stocks available"))
+                    : ListView.builder(
+                        itemCount: filteredStocks.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            elevation: 2,
+                            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            child: ListTile(
+                              title: Text(
+                                filteredStocks[index]['description'] ?? 'No Description',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(filteredStocks[index]['symbol'] ?? 'No Symbol'),
+                              trailing: const Icon(Icons.arrow_forward_ios),
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/stockDetails',
+                                arguments: filteredStocks[index],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+          ),
+        ],
       ),
     );
   }
 }
+
+
 
 class StockDetailsScreen extends StatefulWidget {
   const StockDetailsScreen({super.key});
@@ -293,6 +390,18 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     return json.decode(response.body);
   }
 
+  Future<void> addStockToWatchlist(String symbol) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('watchlists')
+          .doc(user.uid)
+          .collection('stocks')
+          .doc(symbol)
+          .set({'symbol': symbol});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final stock = ModalRoute.of(context)!.settings.arguments as Map;
@@ -315,6 +424,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                         return const Center(child: CircularProgressIndicator());
                       } else if (newsSnapshot.hasError) {
                         return const Center(child: Text("Error loading news"));
+                      } else if (newsSnapshot.data!.isEmpty) {
+                        return const Center(child: Text("No news available"));
                       } else {
                         return ListView.builder(
                           itemCount: newsSnapshot.data!.length,
@@ -357,14 +468,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                   } else {
                     final quote = quoteSnapshot.data!;
                     final isPositive = quote['c'] >= quote['pc'];
-                    
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '\$${quote['c'].toStringAsFixed(2)}', 
+                          '\$${quote['c'].toStringAsFixed(2)}',
                           style: TextStyle(
-                            fontSize: 32, 
+                            fontSize: 32,
                             fontWeight: FontWeight.bold,
                             color: isPositive ? Colors.green : Colors.red,
                           ),
@@ -387,9 +498,9 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        SizedBox(
+                        const SizedBox(
                           height: 200,
-                          child: const Text("Chart Placeholder - Implement with real financial charting library"),
+                          child: Text("Chart Placeholder - Implement with real financial charting library"),
                         ),
                         const SizedBox(height: 16),
                         Card(
@@ -407,6 +518,10 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                               ],
                             ),
                           ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => addStockToWatchlist(symbol),
+                          child: const Text("Add to Watchlist"),
                         ),
                       ],
                     );
@@ -433,6 +548,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     );
   }
 }
+
 
 class WatchlistScreen extends StatefulWidget {
   const WatchlistScreen({super.key});
