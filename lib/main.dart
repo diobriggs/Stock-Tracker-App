@@ -295,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Filter to show only tech stocks based on the list of known tech company symbols
       List<dynamic> techStocks = data.where((stock) => techStockSymbols.contains(stock['symbol'])).toList();
-      
+
       // Update the state with tech stocks (for display) and all stocks (for search functionality)
       setState(() {
         allStocks = data; // Fetch all available stocks
@@ -317,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
               stock['symbol'].toLowerCase().contains(query.toLowerCase()))
           .toList();
 
-      // Optionally, if you want to return to the tech stock list when the search query is empty, you can add this check:
+      // Return to the tech stock list when the search query is empty
       if (query.isEmpty) {
         filteredStocks = allStocks.where((stock) => techStockSymbols.contains(stock['symbol'])).toList();
       }
@@ -365,18 +365,50 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (context, index) {
                           return Card(
                             elevation: 2,
+                            color: Colors.deepPurple, // Make the card purple
                             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            child: ListTile(
-                              title: Text(
-                                filteredStocks[index]['description'] ?? 'No Description',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              subtitle: Text(filteredStocks[index]['symbol'] ?? 'No Symbol'),
-                              trailing: const Icon(Icons.arrow_forward_ios),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(15),
                               onTap: () => Navigator.pushNamed(
                                 context,
                                 '/stockDetails',
                                 arguments: filteredStocks[index],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          filteredStocks[index]['description'] ?? 'No Description',
+                                          style: const TextStyle(
+                                            color: Colors.white, // White text for visibility
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          filteredStocks[index]['symbol'] ?? 'No Symbol',
+                                          style: const TextStyle(
+                                            color: Colors.white70, // Slightly lighter white for subtitle
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const Icon(
+                                      Icons.arrow_forward_ios,
+                                      color: Colors.white70,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );
@@ -388,6 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
 
 
 
