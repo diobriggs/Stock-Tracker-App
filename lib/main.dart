@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'firebase_options.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -402,6 +403,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     }
   }
 
+  List<FlSpot> _generateChartData(Map<String, dynamic> quote) {
+    return [
+      FlSpot(0, quote['pc'].toDouble()), // Previous close price
+      FlSpot(1, quote['o'].toDouble()), // Open price
+      FlSpot(2, quote['c'].toDouble()), // Current price
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final stock = ModalRoute.of(context)!.settings.arguments as Map;
@@ -468,6 +477,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                   } else {
                     final quote = quoteSnapshot.data!;
                     final isPositive = quote['c'] >= quote['pc'];
+                    final chartData = _generateChartData(quote);
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,10 +508,41 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        const SizedBox(
-                          height: 200,
-                          child: Text("Chart Placeholder - Implement with real financial charting library"),
+                        const SizedBox(child: 
+                            Text("Open vs Closing Price",
+                            style: TextStyle(
+                              fontSize: 16
+                            ),
+                          ),
                         ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 250,
+                          child: LineChart(
+                            LineChartData(
+                              lineBarsData: [
+                                LineChartBarData(
+                                  spots: chartData,
+                                  isCurved: true,
+                                  color: isPositive ? Colors.green : Colors.red,
+                                  barWidth: 3,
+                                  dotData: FlDotData(show: true),
+                                  belowBarData: BarAreaData(
+                                    show: true,
+                                    color: (isPositive ? Colors.green : Colors.red).withOpacity(0.3),
+                                  ),
+                                ),
+                              ],
+                              borderData: FlBorderData(show: true),
+                              minX: 0,
+                              maxX: 2,
+                              minY: chartData.map((spot) => spot.y).reduce((a, b) => a < b ? a : b) * 0.95,
+                              maxY: chartData.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) * 1.05,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const SizedBox(child: Text("Y Axis: Price. Leftmost Point: Yesterday's Price, Middle point: Open Price Rightmost Point: Current Price"),),
                         const SizedBox(height: 16),
                         Card(
                           child: Padding(
