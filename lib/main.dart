@@ -25,14 +25,41 @@ class StockTrackerApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+        primarySwatch: Colors.deepPurple, // Change from blue to a richer color
+        colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.deepPurple,
+        primary: Colors.deepPurple,
+        secondary: Colors.deepOrange,
+        background: Colors.white,
+        surface: Colors.grey[100], // Soft background color
+      ),
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      appBarTheme: AppBarTheme(
+        elevation: 1, // Slight shadow
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.deepPurple, // Change text color
+        titleTextStyle: TextStyle(
+        color: Colors.deepPurple,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
         ),
       ),
+      cardTheme: CardTheme(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15), // More rounded corners
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+     style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.deepPurple,
+      foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+       ),
+      ),
+    ),
+  ),
       initialRoute: FirebaseAuth.instance.currentUser == null ? '/login' : '/main',
       routes: {
         '/login': (context) => const LoginScreen(),
