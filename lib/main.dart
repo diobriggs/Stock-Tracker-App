@@ -713,51 +713,114 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   }
 }
 
-class NewsfeedScreen extends StatelessWidget {
+class NewsfeedScreen extends StatefulWidget {
   const NewsfeedScreen({super.key});
 
+  @override
+  State<NewsfeedScreen> createState() => _NewsfeedScreenState();
+}
+
+class _NewsfeedScreenState extends State<NewsfeedScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  late Future<List<dynamic>> _newsFuture;
+  List<dynamic> _filteredNews = [];
+  List<dynamic> _allNews = [];
+
   Future<List<dynamic>> fetchStockNews() async {
-    final response = await http.get(Uri.parse('https://finnhub.io/api/v1/news?category=general&token=ctbiutpr01qvslqulaj0ctbiutpr01qvslqulajg'));
+    final response = await http.get(Uri.parse(
+        'https://finnhub.io/api/v1/news?category=general&token=ctbiutpr01qvslqulaj0ctbiutpr01qvslqulajg'));
     return json.decode(response.body);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _newsFuture = fetchStockNews();
+    _newsFuture.then((news) {
+      setState(() {
+        _allNews = news;
+        _filteredNews = news;
+      });
+    });
+
+    _searchController.addListener(() {
+      _filterNews(_searchController.text);
+    });
+  }
+
+  void _filterNews(String query) {
+    final filtered = _allNews.where((newsItem) {
+      final headline = newsItem['headline'].toLowerCase();
+      final source = newsItem['source'].toLowerCase();
+      return headline.contains(query.toLowerCase()) || source.contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      _filteredNews = filtered;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Stock News")),
-      body: FutureBuilder<List<dynamic>>(
-        future: fetchStockNews(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return const Center(child: Text("Error loading news"));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final newsItem = snapshot.data![index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  child: ListTile(
-                    title: Text(
-                      newsItem['headline'],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(newsItem['source']),
-                    onTap: () async {
-                      final url = Uri.parse(newsItem['url']);
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      }
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                labelText: 'Search News',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder<List<dynamic>>(
+              future: _newsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return const Center(child: Text("Error loading news"));
+                } else {
+                  return ListView.builder(
+                    itemCount: _filteredNews.length,
+                    itemBuilder: (context, index) {
+                      final newsItem = _filteredNews[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        child: ListTile(
+                          title: Text(
+                            newsItem['headline'],
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(newsItem['source']),
+                          onTap: () async {
+                            final url = Uri.parse(newsItem['url']);
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(url);
+                            }
+                          },
+                        ),
+                      );
                     },
-                  ),
-                );
+                  );
+                }
               },
-            );
-          }
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 }
+
