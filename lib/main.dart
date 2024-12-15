@@ -30,7 +30,6 @@ class StockTrackerApp extends StatelessWidget {
         seedColor: Colors.deepPurple,
         primary: Colors.deepPurple,
         secondary: Colors.deepOrange,
-        background: Colors.white,
         surface: Colors.grey[100], // Soft background color
       ),
       visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -149,25 +148,71 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(title: const Text("Login")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 30),
+                // Title text with larger font
+                const Text(
+                  'Welcome!',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Email field
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 20),
+                // Password field
+                TextField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 30),
+                // Login button
+                ElevatedButton(
+                  onPressed: login,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
+                  child: const Text("Login", style: TextStyle(fontSize: 18)),
+                ),
+                const SizedBox(height: 20),
+                // Register link
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/register'),
+                  child: const Text(
+                    "Don't have an account? Register",
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: "Password"),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: login, child: const Text("Login")),
-            TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/register'),
-              child: const Text("Don't have an account? Register"),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -208,26 +253,84 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(title: const Text("Register")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 30),
+                // Title text with larger font
+                const Text(
+                  'Create Your Account',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Email field
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 20),
+                // Password field
+                TextField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 20),
+                // Confirm Password field
+                TextField(
+                  controller: _confirmPasswordController,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    prefixIcon: const Icon(Icons.lock),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 30),
+                // Register button
+                ElevatedButton(
+                  onPressed: register,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
+                  child: const Text("Register", style: TextStyle(fontSize: 18)),
+                ),
+                const SizedBox(height: 20),
+                // Already have an account? Login link
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
+                  child: const Text(
+                    "Already have an account? Login",
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: "Password"),
-              obscureText: true,
-            ),
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: const InputDecoration(labelText: "Confirm Password"),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: register, child: const Text("Register")),
-          ],
+          ),
         ),
       ),
     );
@@ -673,7 +776,6 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -693,11 +795,36 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
             return const Center(child: Text("No stocks in your watchlist"));
           } else {
             return ListView(
+              padding: const EdgeInsets.all(10), // Add padding around the ListView
               children: snapshot.data!.docs.map((doc) {
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12), // Rounded corners
+                  ),
+                  elevation: 5, // Add shadow for a modern feel
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  color: Colors.blueGrey.shade50, // Subtle background color
                   child: ListTile(
-                    title: Text(doc['symbol']),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15), // Add padding to ListTile
+                    leading: Icon(
+                      Icons.stacked_line_chart, // Example icon for stocks
+                      color: Colors.deepPurple,
+                    ),
+                    title: Text(
+                      doc['symbol'],
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Tap to remove',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => removeStockFromWatchlist(doc['symbol']),
@@ -712,7 +839,6 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     );
   }
 }
-
 class NewsfeedScreen extends StatefulWidget {
   const NewsfeedScreen({super.key});
 
